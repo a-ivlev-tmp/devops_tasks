@@ -1,0 +1,34 @@
+replicaCount: 1
+
+image:
+  repository: aivlevtmp/tmp-repo
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "sha-31bee57"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podLabels: {}
+
+service:
+  type: NodePort
+  port: 3000
+
+resources:
+  limits:
+    cpu: 150m
+    memory: 200Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
