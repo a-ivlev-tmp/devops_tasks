@@ -1,73 +1,56 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-  
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+# DevOps tasks
 
-## Description
+This repo contains 3 tasks. To get more details regarding each of them please read the respective section in this document.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Part 1: Working with Docker
 
-## Installation
+As an example of Node.js application I've picked [nestjs starter](https://github.com/nestjs/typescript-starter), just beacause it already contains some tests which are required in the second task. To read nestjs starter documentation, please go to [nestjs.README.md](nestjs.README.md) file.
 
 ```bash
-$ npm install
+# To build an image
+$ docker build -t node_task1 .
+
+# To run a container
+$ docker run --rm -ti -d -p 3000:3000 node_task1
+
+# I've pushed my image to Docker Hub, in accordance with the task. So you can run it without local build
+$ docker run --rm -ti -d -p 3000:3000 aivlevtmp/tmp-repo:latest
+
+# To verify application
+$ curl http://localhost:3000/
 ```
 
-## Running the app
+You can find this image on the [Docker Hub](https://hub.docker.com/repository/docker/aivlevtmp/tmp-repo/tags).
 
-```bash
-# development
-$ npm run start
+## Part 2: Working with CI/CD
 
-# watch mode
-$ npm run start:dev
+Please find GitHub Actions pipeline file under [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
-# production mode
-$ npm run start:prod
+It does the following steps:
+1. Lint the nest app
+2. Run tests for two Node.js versions
+3. Build docker image and push to the same [Docker Hub repo](https://hub.docker.com/repository/docker/aivlevtmp/tmp-repo/tags)
+
+I decided to do all these steps consequentially, and tests in parallel, although in real life it may depend on many things.
+
+## Part 3: Working with Helm and Terraform
+
+ Terraform configuration files can be found under **infra** directory. Helm configuration files can be found under **infra/task3** directory.
+
+ ```bash
+# To download terraform providers
+$ terraform init
+
+# To create local kind cluster and install the helm chart
+$ terraform apply -auto-approve
+
+# To verify application
+$ curl http://localhost/
 ```
 
-## Test
+For this test task I decided to use NodePort service type to expose application. In real life probably you will not expose applications in this way, you would rather use Ingress resource or LoadBalancer service type. Kind cluster also supports nginx ingress, but I decided to use simple NodePort service to reduce complexity and save time.
 
-```bash
-# unit tests
-$ npm run test
+To be able to verify our application we need to have *extra_port_mappings* config for the kind cluster.
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-  Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Helm chart deployment is done via Terraform using Helm provider.
